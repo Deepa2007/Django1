@@ -1,0 +1,32 @@
+{% extends 'base_generic.html' %}
+{% block content %}
+<h2>Chat with {{ room_name }}</h2>
+<div id="chat-messages">
+    {% for message in messages %}
+        <p><strong>{{ message.sender.username }}:</strong> {{ message.content }}</p>
+    {% endfor %}
+</div>
+<input id="message-input" type="text" placeholder="Type a message...">
+<button onclick="sendMessage()">Send</button>
+
+<script>
+    var roomName = "{{ room_name }}";
+    var ws = new WebSocket('ws://' + window.location.host + '/ws/chat/' + roomName + '/');
+    ws.onmessage = function(event) {
+        var data = JSON.parse(event.data);
+        var message = data['message'];
+        var sender = data['sender'];
+        var chatMessages = document.getElementById('chat-messages');
+        chatMessages.innerHTML += '<p><strong>' + sender + ':</strong> ' + message + '</p>';
+    };
+
+    function sendMessage() {
+        var messageInput = document.getElementById('message-input');
+        var message = messageInput.value;
+        ws.send(JSON.stringify({
+            'message': message
+        }));
+        messageInput.value = '';
+    }
+</script>
+{% endblock %}
